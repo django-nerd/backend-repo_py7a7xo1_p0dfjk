@@ -1,48 +1,37 @@
 """
-Database Schemas
+Database Schemas for Smart Notes Generator
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Each Pydantic model below represents a MongoDB collection. The collection
+name is the lowercase class name (e.g., Note -> "note").
 """
-
+from __future__ import annotations
+from typing import List, Optional, Literal, Dict, Any
 from pydantic import BaseModel, Field
-from typing import Optional
 
-# Example schemas (replace with your own):
+class Folder(BaseModel):
+    name: str = Field(..., description="Folder name")
+    color: Optional[str] = Field(None, description="Hex color for UI tag")
 
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+class Note(BaseModel):
+    title: str = Field(..., description="Note title")
+    content: str = Field("", description="Rich text / Markdown content")
+    source_type: Literal["text","file","url"] = Field(...)
+    source_name: Optional[str] = None
+    options: Dict[str, Any] = Field(default_factory=dict)
+    folder_id: Optional[str] = None
+    keywords: List[str] = Field(default_factory=list)
+    topics: List[str] = Field(default_factory=list)
+    transcript: Optional[str] = None
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+class Quiz(BaseModel):
+    note_id: str
+    title: str
+    questions: List[Dict[str, Any]]
 
-# Add your own schemas here:
-# --------------------------------------------------
+class Flashcard(BaseModel):
+    note_id: str
+    cards: List[Dict[str, str]]
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Setting(BaseModel):
+    key: str
+    value: Any
